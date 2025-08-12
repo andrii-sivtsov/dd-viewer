@@ -5,9 +5,13 @@ Designed to work with container elements that contain an <img> tag inside.
 
 ## Installation
 
+### CDN
+
 ```html
-<script src="ddviewer.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/andrii-sivtsov/ddviewer/dist/ddviewer.umd.min.js"></script>
 ```
+
+## ES module
 
 ```javascript
 import DDViewer from './ddviewer.js'
