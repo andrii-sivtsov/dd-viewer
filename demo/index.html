@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<meta charset="utf-8" />
+<title>DDViewer demo</title>
+<style>
+	.ddv-card {
+		display: inline-block;
+		margin: 8px;
+		cursor: pointer;
+	}
+	.ddv-card img {
+		width: 180px;
+		height: 120px;
+		object-fit: cover;
+		border-radius: 8px;
+	}
+</style>
+<div class="ddv-card">
+	<img src="https://picsum.photos/seed/1/800/500" alt="" />
+</div>
+<div class="ddv-card">
+	<img src="https://picsum.photos/seed/2/800/500" alt="" />
+</div>
+<div class="ddv-card">
+	<img src="https://picsum.photos/seed/3/800/500" alt="" />
+</div>
+<script src="../dist/ddviewer.js"></script>
+<script>
+	new DDViewer('.ddv-card')
+</script>

@@ -1,0 +1,33 @@
+{
+	"name": "dd-viewer",
+	"version": "0.1.0",
+	"description": "Designer’s Diary image viewer (lightbox/gallery)",
+	"author": "Designer Diary | Andrii Sivtsov",
+	"license": "MIT",
+	"source": "src/index.js",
+	"main": "dist/ddviewer.umd.js",
+	"module": "dist/ddviewer.modern.js",
+	"unpkg": "dist/ddviewer.umd.min.js",
+	"jsdelivr": "dist/ddviewer.umd.min.js",
+	"exports": {
+		".": {
+			"import": "./dist/ddviewer.modern.js",
+			"require": "./dist/ddviewer.umd.js"
+		}
+	},
+	"files": [
+		"dist",
+		"src",
+		"README.md",
+		"LICENSE"
+	],
+	"scripts": {
+		"build": "microbundle --name DDViewer --no-sourcemap",
+		"build:watch": "microbundle watch --name DDViewer --no-sourcemap",
+		"demo": "npm run build && npx serve -l 8080 ."
+	},
+	"devDependencies": {
+		"microbundle": "^0.15.1",
+		"serve": "^14.2.3"
+	}
+}
