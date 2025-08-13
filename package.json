@@ -24,7 +24,9 @@
 	"scripts": {
 		"build": "microbundle --name DDViewer --no-sourcemap",
 		"build:watch": "microbundle watch --name DDViewer --no-sourcemap",
-		"demo": "npm run build && npx serve -l 8080 ."
+		"demo": "npm run build && npx serve -l 8080 .",
+		"update-doc-version": "npx replace-in-file '__VERSION__' $(node -p \"require('./package.json').version\") README.md",
+		"preversion": "npm run update-doc-version"
 	},
 	"devDependencies": {
 		"microbundle": "^0.15.1",
