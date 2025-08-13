@@ -7,7 +7,8 @@ Lightweight, dependency-free JavaScript image viewer with optional thumbnail sli
 **CDN**
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/andrii-sivtsov/ddviewer@v1.0.x/dist/ddviewer.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/andrii-sivtsov/dd-viewer@0.1.1/dist/ddviewer.min.js
+"></script>
 ```
 
 **ES module**
