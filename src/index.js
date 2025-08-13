@@ -35,11 +35,17 @@ class DDViewer {
 		this.cards = []
 		this.activeIndex = -1
 
-		this._collectCards()
 		this._mountModal()
+		this._collectCards()
 		this._bindCards()
 
 		if (this.options.watchAsyncContent) this._watchAsyncCards()
+	}
+
+	_ensureMounted() {
+		if (!this.modalRoot || !this.modalImageEl) {
+			this._mountModal()
+		}
 	}
 
 	// ---------- utils ----------
@@ -63,7 +69,14 @@ class DDViewer {
 		this.cards.forEach((cardEl, index) => {
 			cardEl.addEventListener('click', evt => {
 				evt.preventDefault()
-				this.openByIndex(index)
+				this._ensureMounted()
+				// на всякий случай — если только что смонтировали
+				// даём браузеру отрисоваться
+				if (!this.modalRoot || !this.modalImageEl) {
+					setTimeout(() => this.openByIndex(index), 0)
+				} else {
+					this.openByIndex(index)
+				}
 			})
 		})
 	}
