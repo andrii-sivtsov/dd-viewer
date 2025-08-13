@@ -1,3 +1,4 @@
+// DDViewer — thumbnail strip: no-loop scroll, arrow enable/disable, EN comments
 class DDViewer {
 	constructor(cardSelector, options = {}) {
 		this.options = Object.assign(
@@ -6,14 +7,15 @@ class DDViewer {
 				closeOnOverlay: true,
 				hooks: { open: null, close: null },
 				watchAsyncContent: false, // false | 'auto' | { button: 'selector' }
-				thumbs: true, // лента снизу (on/off)
+				thumbs: true, // show thumbnail strip (on/off)
 				mount: 'auto', // 'auto' | 'manual' | { ui: '.my-modal' }
 				template: null, // null | (ui) => string | Node
-				selectors: { root: '.ddlb-modal', img: '.ddlb-modal-image' }, // для manual/adopt
+				selectors: { root: '.ddlb-modal', img: '.ddlb-modal-image' }, // for manual/adopt
 			},
 			options
 		)
 
+		// Anchor selectors (keep as combo-classes in custom markup)
 		this.ui = {
 			modalRoot: '.ddlb-modal',
 			modalWindow: '.ddlb-modal-window',
@@ -28,6 +30,7 @@ class DDViewer {
 			thumbButton: '.ddlb-thumb',
 		}
 
+		// Group = all cards matching selector
 		this.cardSelector = cardSelector
 		this.cards = []
 		this.activeIndex = -1
@@ -93,6 +96,7 @@ class DDViewer {
 	_mountModal() {
 		let hostContainer = null
 
+		// Adopt existing modal by selector: { mount: { ui: '.my-modal' } }
 		if (typeof this.options.mount === 'object' && this.options.mount.ui) {
 			hostContainer = this._qs(this.options.mount.ui)
 			if (!hostContainer) {
@@ -101,6 +105,7 @@ class DDViewer {
 			}
 		}
 
+		// Manual / adopt
 		if (this.options.mount === 'manual' || hostContainer) {
 			const scope = hostContainer || document
 			this.modalRoot = this._qs(
@@ -117,6 +122,7 @@ class DDViewer {
 			return
 		}
 
+		// Auto: reuse existing or build default
 		const existed = this._qs(this.ui.modalRoot)
 		if (existed) {
 			this.modalRoot = existed
@@ -125,6 +131,7 @@ class DDViewer {
 			return
 		}
 
+		// Custom template
 		let node = null
 		if (typeof this.options.template === 'function') {
 			const tpl = this.options.template(this.ui)
@@ -135,6 +142,7 @@ class DDViewer {
 			} else if (tpl && tpl.nodeType === 1) node = tpl
 		}
 
+		// Default build
 		if (!node) node = this._createDefaultModal()
 
 		document.body.appendChild(node)
@@ -162,7 +170,7 @@ class DDViewer {
 		slideNextBtn.type = 'button'
 		slideNextBtn.textContent = '›'
 
-		// thumbs (optional)
+		// Thumbs (optional)
 		let thumbsWrap = null,
 			thumbsViewport = null,
 			thumbsTrack = null,
@@ -228,8 +236,7 @@ class DDViewer {
 		if (!this.modalRoot) return
 
 		if (this.options.closeOnOverlay) {
-			// закрываем по клику в любом месте модалки,
-			// кроме картинки, стрелок кадра и блока превью
+			// Close on any click inside overlay EXCEPT image, frame arrows and thumbs area
 			this.modalRoot.addEventListener('click', e => {
 				const inImage = e.target.closest(this.ui.modalImage)
 				const inPrev = e.target.closest(this.ui.slidePrevBtn)
@@ -255,30 +262,50 @@ class DDViewer {
 		slidePrevBtn && slidePrevBtn.addEventListener('click', () => this.prev())
 		slideNextBtn && slideNextBtn.addEventListener('click', () => this.next())
 
+		// Thumbs navigation (no-loop scroll at edges)
 		const thumbsViewport = this._qs(this.ui.thumbsViewport, this.modalRoot)
+		const thumbsTrack = this._qs(this.ui.thumbsTrack, this.modalRoot)
 		const thumbsPrevBtn = this._qs(this.ui.thumbsPrevBtn, this.modalRoot)
 		const thumbsNextBtn = this._qs(this.ui.thumbsNextBtn, this.modalRoot)
 
-		// если лента отключена — скрыть стрелки (на случай кастомной вёрстки)
+		// If thumbs off — hide arrows (for custom markup case)
 		if (!this.options.thumbs) {
 			thumbsPrevBtn && (thumbsPrevBtn.style.display = 'none')
 			thumbsNextBtn && (thumbsNextBtn.style.display = 'none')
 		} else if (thumbsViewport && thumbsPrevBtn && thumbsNextBtn) {
-			const step = () => Math.floor(thumbsViewport.clientWidth * 0.9)
-			thumbsPrevBtn.addEventListener('click', () =>
-				thumbsViewport.scrollBy({ left: -step(), behavior: 'smooth' })
-			)
-			thumbsNextBtn.addEventListener('click', () =>
-				thumbsViewport.scrollBy({ left: step(), behavior: 'smooth' })
-			)
-			// автообновление видимости стрелок
-			this._updateThumbsArrows()
-			const track = this._qs(this.ui.thumbsTrack, this.modalRoot)
+			const stepPx = () => Math.floor(thumbsViewport.clientWidth * 0.9)
 
+			const thumbScrollTo = left => {
+				thumbsViewport.scrollTo({ left, behavior: 'smooth' })
+				this._updateThumbsArrows()
+			}
+
+			const clampScroll = delta => {
+				const max = Math.max(
+					0,
+					thumbsViewport.scrollWidth - thumbsViewport.clientWidth
+				)
+				const target = Math.max(
+					0,
+					Math.min(max, Math.round(thumbsViewport.scrollLeft + delta))
+				)
+				thumbScrollTo(target)
+			}
+
+			thumbsPrevBtn.addEventListener('click', () => clampScroll(-stepPx()))
+			thumbsNextBtn.addEventListener('click', () => clampScroll(stepPx()))
+			thumbsViewport.addEventListener(
+				'scroll',
+				() => this._updateThumbsArrows(),
+				{ passive: true }
+			)
+
+			// Initial state + observers
+			this._updateThumbsArrows()
 			this._thumbsRO?.disconnect?.()
 			this._thumbsRO = new ResizeObserver(() => this._updateThumbsArrows())
 			this._thumbsRO.observe(thumbsViewport)
-			if (track) this._thumbsRO.observe(track)
+			if (thumbsTrack) this._thumbsRO.observe(thumbsTrack)
 
 			this._updateThumbsArrowsBound ||= () => this._updateThumbsArrows()
 			window.addEventListener(
@@ -296,9 +323,19 @@ class DDViewer {
 		const next = this._qs(this.ui.thumbsNextBtn, this.modalRoot)
 		if (!vp || !prev || !next) return
 
-		const need = vp.scrollWidth > vp.clientWidth + 1
+		const max = Math.max(0, vp.scrollWidth - vp.clientWidth)
+		const need = max > 1 // show arrows only if overflow exists
 		prev.style.display = need ? '' : 'none'
 		next.style.display = need ? '' : 'none'
+
+		if (need) {
+			const atStart = vp.scrollLeft <= 1
+			const atEnd = vp.scrollLeft >= max - 1
+			prev.disabled = atStart
+			next.disabled = atEnd
+			prev.setAttribute('aria-disabled', atStart ? 'true' : 'false')
+			next.setAttribute('aria-disabled', atEnd ? 'true' : 'false')
+		}
 	}
 
 	// ---------- thumbs ----------
@@ -327,6 +364,7 @@ class DDViewer {
 				im.src = bigSrc || ''
 
 				if (this.options.styles) {
+					// .ddlb-thumb default look
 					btn.style.cssText =
 						'flex:0 0 auto; border:2px solid transparent; padding:0; background:transparent'
 					im.style.cssText =
@@ -373,7 +411,10 @@ class DDViewer {
 		const thRect = thumbButton.getBoundingClientRect()
 		const delta =
 			(thRect.left + thRect.right) / 2 - (vpRect.left + vpRect.right) / 2
-		viewport.scrollTo({ left: viewport.scrollLeft + delta, behavior: 'smooth' })
+		viewport.scrollTo({
+			left: Math.max(0, viewport.scrollLeft + delta),
+			behavior: 'smooth',
+		})
 	}
 
 	// ---------- navigation ----------

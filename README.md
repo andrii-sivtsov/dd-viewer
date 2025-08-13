@@ -1,103 +1,74 @@
 # DDViewer
 
-A lightweight, dependency-free JavaScript image viewer for modal display.
-Designed to work with container elements that contain an <img> tag inside.
+Lightweight, dependency-free JavaScript image viewer with optional thumbnail slider.
 
 ## Installation
 
-### CDN
+**CDN**
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/andrii-sivtsov/ddviewer/dist/ddviewer.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/andrii-sivtsov/ddviewer@v1.0.x/dist/ddviewer.umd.min.js"></script>
 ```
 
-## ES module
+**ES module**
 
-```javascript
+```js
 import DDViewer from './ddviewer.js'
+```
+
+## HTML Example (with thumbnails)
+
+```html
+<div class="gallery-item"><img src="1.jpg" alt="" /></div>
+<div class="gallery-item"><img src="2.jpg" alt="" /></div>
+
+<div class="my-modal ddlb-modal" aria-hidden="true">
+	<div class="ddlb-modal-window">
+		<button class="ddlb-slide-prev">‹</button>
+		<img class="ddlb-modal-image" alt="" />
+		<button class="ddlb-slide-next">›</button>
+
+		<div class="ddlb-thumbs">
+			<button class="ddlb-thumbs-prev">‹</button>
+			<div class="ddlb-thumbs-viewport">
+				<div class="ddlb-thumbs-track">
+					<button class="ddlb-thumb"><img src="1.jpg" alt="" /></button>
+					<button class="ddlb-thumb"><img src="2.jpg" alt="" /></button>
+				</div>
+			</div>
+			<button class="ddlb-thumbs-next">›</button>
+		</div>
+	</div>
+</div>
 ```
 
 ## Usage
 
-### HTML structure\*
-
-Your selector must target a container with an <img> inside.
-
-```html
-<div class="gallery-item">
-	<img src="image.jpg" alt="" />
-</div>
-```
-
-### Initialize
-
-```javascript
+```js
+// With thumbnails
 new DDViewer('.gallery-item', {
-	styles: false,
-	hooks: {
-		open: ({ root }) => {
-			root.style.visibility = 'visible'
-			root.style.pointerEvents = 'auto'
-		},
-		close: ({ root }) => {
-			root.style.visibility = 'hidden'
-			root.style.pointerEvents = 'none'
-		},
-	},
+	mount: '.my-modal',
+	thumbs: true,
+})
+
+// Without thumbnails
+new DDViewer('.gallery-item', {
+	mount: '.my-modal',
+	thumbs: false,
 })
 ```
 
-### Options
+## Options
 
-```javascript
-{
-  // Injects default inline styles into modal elements
-  styles: true, // boolean
+- **mount** — `'auto'` or `'.selector'` to use your own modal
+- **styles** — `true / false` inject default styles
+- **thumbs** — `true / false` enable/disable thumbnail slider
+- **closeOnOverlay** — `true / false` close on overlay click
+- **watchAsyncContent** — `false`, `'auto'` or `{ button: 'selector' }`
+- **hooks** — `{ open, close }` callbacks for open/close events
 
-  // Closes modal when clicking outside the image
-  closeOnOverlay: true, // boolean
+## Quick Start
 
-  // Functions called on open/close
-  hooks: { open: null, close: null }, // { open?: Function, close?: Function }
-
-  // Watch for dynamically added content:
-  // false — no watching
-  // 'auto' — MutationObserver on document.body
-  // { button: 'selector' } — rebind after clicking a specific button
-  watchAsyncContent: false, // false | 'auto' | { button: string }
-
-  // Modal mount mode:
-  // 'auto' — create modal automatically
-  // 'manual' — expect modal markup in DOM
-  mount: 'auto', // 'auto' | 'manual'
-
-  // Modal structure (created in 'auto' mode if template is not provided)
-  ui: {
-    root: { el: 'div', class: 'ddlb-modal', attrs: { 'aria-hidden': 'true' } },
-    window: { el: 'div', class: 'ddlb-modal-window', attrs: {} },
-    img: { el: 'img', class: 'ddlb-modal-image', attrs: { alt: '' } },
-  },
-
-  // Custom HTML template function (overrides ui)
-  template: null, // null | (ui) => string | Node
-
-  // Selectors for manual mount mode
-  selectors: { root: '.ddlb-modal', img: '.ddlb-modal-image' },
-}
-```
-
-### Public API
-
-```javascript
-viewer.open(src: string)
-// Opens modal with the given image source
-
-viewer.close()
-// Closes the modal
-```
-
-### Tips
-
-- Change modal HTML structure with `ui` or `template`
-- Use `manual` mount mode if you already have modal HTML in your DOM
-- `watchAsyncContent` is useful when your gallery is loaded dynamically (AJAX, infinite scroll, etc.)
+1. Add gallery items and modal HTML
+2. Include script via CDN or import
+3. Init `new DDViewer()` with desired options
