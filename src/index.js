@@ -81,6 +81,7 @@ class DDViewer {
 		})
 	}
 
+	// replace _watchAsyncCards() block for "object" case
 	_watchAsyncCards() {
 		if (this.options.watchAsyncContent === 'auto') {
 			const mo = new MutationObserver(() => {
@@ -90,18 +91,32 @@ class DDViewer {
 			mo.observe(document.body, { childList: true, subtree: true })
 			return
 		}
+
+		// { button: '.view-update', all: true }
 		if (
 			typeof this.options.watchAsyncContent === 'object' &&
 			this.options.watchAsyncContent.button
 		) {
-			const btn = this._qs(this.options.watchAsyncContent.button)
-			if (btn)
-				btn.addEventListener('click', () =>
-					setTimeout(() => {
-						this._collectCards()
-						this._bindCards()
-					}, 50)
-				)
+			const sel = this.options.watchAsyncContent.button
+			const useAll = !!this.options.watchAsyncContent.all
+
+			// find one or many buttons
+			const nodes = useAll ? this._qsa(sel) : [this._qs(sel)].filter(Boolean)
+
+			const rebind = () =>
+				setTimeout(() => {
+					this._collectCards()
+					this._bindCards()
+				}, 50)
+
+			nodes.forEach(btn => btn.addEventListener('click', rebind))
+
+			// optional: live delegation for dynamically added buttons
+			if (useAll && nodes.length === 0) {
+				document.addEventListener('click', e => {
+					if (e.target.closest(sel)) rebind()
+				})
+			}
 		}
 	}
 
