@@ -92,16 +92,11 @@ class DDViewer {
 			return
 		}
 
-		// { button: '.view-update', all: true }
 		if (
 			typeof this.options.watchAsyncContent === 'object' &&
 			this.options.watchAsyncContent.button
 		) {
 			const sel = this.options.watchAsyncContent.button
-			const useAll = !!this.options.watchAsyncContent.all
-
-			// find one or many buttons
-			const nodes = useAll ? this._qsa(sel) : [this._qs(sel)].filter(Boolean)
 
 			const rebind = () =>
 				setTimeout(() => {
@@ -109,14 +104,9 @@ class DDViewer {
 					this._bindCards()
 				}, 50)
 
-			nodes.forEach(btn => btn.addEventListener('click', rebind))
-
-			// optional: live delegation for dynamically added buttons
-			if (useAll && nodes.length === 0) {
-				document.addEventListener('click', e => {
-					if (e.target.closest(sel)) rebind()
-				})
-			}
+			document.addEventListener('click', e => {
+				if (e.target.closest(sel)) rebind()
+			})
 		}
 	}
 
