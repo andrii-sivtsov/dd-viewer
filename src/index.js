@@ -11,6 +11,7 @@ class DDViewer {
 				mount: 'auto', // 'auto' | 'manual' | { ui: '.my-modal' }
 				template: null, // null | (ui) => string | Node
 				selectors: { root: '.ddlb-modal', img: '.ddlb-modal-image' }, // for manual/adopt
+				logs: false,
 			},
 			options
 		)
@@ -40,6 +41,13 @@ class DDViewer {
 		this._bindCards()
 
 		if (this.options.watchAsyncContent) this._watchAsyncCards()
+
+		this._log('init', { selector: cardSelector, cards: this.cards.length })
+	}
+
+	_log(event, data = {}) {
+		if (!this.options.logs) return
+		console.log(`[DDViewer LOG] ${event}`, Object.keys(data).length ? data : '')
 	}
 
 	_ensureMounted() {
@@ -69,9 +77,9 @@ class DDViewer {
 		this.cards.forEach((cardEl, index) => {
 			cardEl.addEventListener('click', evt => {
 				evt.preventDefault()
+				this._log('card clicked', { index, el: cardEl })
 				this._ensureMounted()
 				// на всякий случай — если только что смонтировали
-				// даём браузеру отрисоваться
 				if (!this.modalRoot || !this.modalImageEl) {
 					setTimeout(() => this.openByIndex(index), 0)
 				} else {
@@ -102,6 +110,7 @@ class DDViewer {
 				setTimeout(() => {
 					this._collectCards()
 					this._bindCards()
+					this._log('cards rebound', { total: this.cards.length })
 				}, 50)
 
 			document.addEventListener('click', e => {
@@ -472,6 +481,7 @@ class DDViewer {
 	// ---------- public API ----------
 	open(src) {
 		if (!src || !this.modalImageEl) return
+		this._log('modal open', { src })
 
 		this.modalImageEl.src = src
 		this.modalRoot.setAttribute('aria-hidden', 'false')
@@ -491,6 +501,7 @@ class DDViewer {
 
 	close() {
 		if (!this.modalRoot) return
+		this._log('modal close')
 
 		if (this.options.hooks?.close) {
 			this.options.hooks.close({ root: this.modalRoot, img: this.modalImageEl })
