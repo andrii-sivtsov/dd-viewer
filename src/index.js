@@ -9,6 +9,7 @@ class DDViewer {
 				watchAsyncContent: false, // false | 'auto' | { button: 'selector' }
 				thumbs: true, // show thumbnail strip (on/off)
 				mount: 'auto', // 'auto' | 'manual' | { ui: '.my-modal' }
+				trigger: 'card', // 'manual' - hand control
 				template: null, // null | (ui) => string | Node
 				selectors: { root: '.ddlb-modal', img: '.ddlb-modal-image' }, // for manual/adopt
 				logs: false,
@@ -74,19 +75,19 @@ class DDViewer {
 	}
 
 	_bindCards() {
-		this.cards.forEach((cardEl, index) => {
-			cardEl.addEventListener('click', evt => {
-				evt.preventDefault()
-				this._log('card clicked', { index, el: cardEl })
-				this._ensureMounted()
-				// на всякий случай — если только что смонтировали
-				if (!this.modalRoot || !this.modalImageEl) {
-					setTimeout(() => this.openByIndex(index), 0)
-				} else {
-					this.openByIndex(index)
-				}
+		if (this.options.trigger === 'card') {
+			this.cards.forEach((cardEl, index) => {
+				cardEl.addEventListener('click', evt => {
+					evt.preventDefault()
+					this._ensureMounted()
+					if (!this.modalRoot || !this.modalImageEl) {
+						setTimeout(() => this.openByIndex(index), 0)
+					} else {
+						this.openByIndex(index)
+					}
+				})
 			})
-		})
+		}
 	}
 
 	// replace _watchAsyncCards() block for "object" case
